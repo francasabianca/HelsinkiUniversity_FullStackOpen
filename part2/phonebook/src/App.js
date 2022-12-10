@@ -4,29 +4,33 @@
 //1-we can start adding the 'prevent default' feature to prevent the form to re-render the entire page
 //2-to do that we have to call a function inside the 'onSubmit' 
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Persons from './components/Persons'
 import Form from './components/Form'
 import Filter from './components/Filter'
+import axios from 'axios'
 
 const App = () => {
 
   const [number, setNumber] = useState('')
   const [newName, setNewName] = useState('')
   const [filter, setFilter] = useState('')
-  const [filteredPersons, setFilteredPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
-  ])
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
-  ])
+  const [personsJSON, setPersonsJSON] = useState([])
+  const [persons, setPersons] = useState([])
   
+  const hook = () => {
+    console.log('entered in hook')
+    axios
+      .get('http://localhost:3001/persons')
+      .then(response => {
+        console.log('promise fullfilled')
+        setPersons(response.data)
+        setPersonsJSON(response.data)
+      })
+  }
+
+  useEffect(hook, [])
+
   const nameExists = () => {
     const nameExists = persons.map(
       person => person.name).some(
@@ -35,11 +39,11 @@ const App = () => {
   }
 
   const filterNames = () => {
-    const filterResult = persons.filter(
+    const filterResult = personsJSON.filter(
       person => person.name.toLowerCase().
         includes(filter)
     )
-    console.log('names', filterResult)
+    
     return filterResult
   }
 
@@ -57,9 +61,10 @@ const App = () => {
 
   const filterPersons = (event) => {
     event.preventDefault()
-     event.target.value = '' ?
-      setFilteredPersons(persons) :
-        setFilteredPersons(filterNames())
+    event.target.value = '' ?
+      setPersons(personsJSON) :
+        setPersons(filterNames())
+    console.log('persons after filter:', persons)
   }
 
   const addNewPerson = (event) => {
@@ -73,10 +78,14 @@ const App = () => {
 
     if(!nameExists()) {
       setPersons(persons.concat(newPerson))
+      setPersonsJSON(personsJSON.concat(newPerson))
+      
     } else {
       alert(`${newName} already exists in phonebook`)
     }
   }
+
+  //filteredPersons = [''] ? console.log('esta vacio esto') : console.log('tiene algo esto')
 
   return (
     <div>
@@ -88,7 +97,7 @@ const App = () => {
           handleNameChange={handleNameChange}
             handleNumberChange={handleNumberChange}/>
       <h3>Numbers</h3>
-      <Persons persons={filteredPersons}/>
+      <Persons persons={persons}/>
     </div>
   )
 }
