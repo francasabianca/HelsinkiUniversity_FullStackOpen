@@ -9,6 +9,7 @@ import Persons from './components/Persons'
 import Form from './components/Form'
 import Filter from './components/Filter'
 import personService from './services/Person'
+import snippets from './Snippets/Snippets'
 
 const App = () => {
 
@@ -20,33 +21,39 @@ const App = () => {
   
   useEffect(() => {
     personService
-      .getAll()
-      .then(initialPersons =>
-        setPersons(initialPersons)
-      )
+    .getAll()
+    .then(initialPersons =>
+      setPersons(initialPersons)
+    )
   }, [])
-    
-  const addNewPerson = (event) => {
-    event.preventDefault()
+  
+    const addNewPerson = (event) => {
+      event.preventDefault()
       
-    const newPerson = {
-      name: newName,
-      number: number,
-    }
-    
-    if(!nameExists()) {
-        
-      personService.create(newPerson)
-      .then(response => 
-          setPersons(persons.concat(response))
-      )
-    } else {
-      alert(`${newName} already exists in phonebook`)
-    }
+      const newPerson = {
+        name: newName,
+        number: number,
+      }
+      
+      const checkIfPersonExists = snippets.checkIfPersonExists(newName, persons);
+
+      if (checkIfPersonExists) {
+        if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+          const personId = snippets.returnPersonId(newName, persons)
+          personService.update(personId, newPerson)
+          .then(response => {
+            setPersons(persons.map(p => p.id !== personId ? p : response))
+          }) 
+        }
+      } else {
+          personService.create(newPerson)
+          .then(response => 
+            setPersons(persons.concat(response))
+          )
+      }      
   }
 
   const removePerson = ({ person }) => {
-    
     if(window.confirm(`Delete ${person.name}?`)) {
       personService.remove(person.id)
       .then(setPersons(persons
@@ -54,19 +61,11 @@ const App = () => {
     }
   }
 
-  const nameExists = () => {
-    const nameExists = persons.map(
-      person => person.name).some(
-        name => name === newName)
-          return (nameExists)
-  }
-
   const filterPersonsNames = () => {
     const filterResult = personsInServer.filter(
       person => person.name.toLowerCase().
         includes(filter)
     )
-    
     return filterResult
   }
 
