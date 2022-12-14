@@ -1,7 +1,15 @@
-const Button = (props) => {
+const Button = ({ type, text }) => {
     return (
-        <button type={props.type}>{props.text}</button>
+        <button type={type}>{text}</button>
     )
 }
 
-export default Button
+const DeleteButton = ({ type, removePerson, person }) => {
+    
+    return (
+        
+        <button type='submit' onClick={() => removePerson({ person })}>Delete</button>
+    )
+}
+
+export default { Button, DeleteButton }

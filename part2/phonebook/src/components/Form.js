@@ -1,5 +1,5 @@
 import Input from './Input'
-import Button from './Button'
+import Buttons from './Button'
 
 const Form = (props) => {
     
@@ -7,7 +7,7 @@ const Form = (props) => {
         <form onSubmit={props.addNewPerson}>
             <Input text='name' handleChange={props.handleNameChange}/>
             <Input text='number' handleChange={props.handleNumberChange} />
-            <Button type='submit' text='add'/>
+            <Buttons.Button type='submit' text='add'/>
         </form>
     )
 }

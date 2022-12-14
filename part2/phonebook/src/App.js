@@ -15,15 +15,16 @@ const App = () => {
   const [number, setNumber] = useState('')
   const [newName, setNewName] = useState('')
   const [filter, setFilter] = useState('')
-  const [personsJSON, setPersonsJSON] = useState([])
+  const [personsInServer, setPersonsInServer] = useState([])
   const [persons, setPersons] = useState([])
   
   useEffect(() => {
     personService
-    .getAll()
-    .then(initialPersons =>
-      setPersons(initialPersons))
-    })
+      .getAll()
+      .then(initialPersons =>
+        setPersons(initialPersons)
+      )
+  }, [])
     
   const addNewPerson = (event) => {
     event.preventDefault()
@@ -31,14 +32,25 @@ const App = () => {
     const newPerson = {
       name: newName,
       number: number,
-      id: persons.length + 1
     }
-  
+    
     if(!nameExists()) {
-      setPersons(persons.concat(newPerson))
-      setPersonsJSON(personsJSON.concat(newPerson))
+        
+      personService.create(newPerson)
+      .then(response => 
+          setPersons(persons.concat(response))
+      )
     } else {
       alert(`${newName} already exists in phonebook`)
+    }
+  }
+
+  const removePerson = ({ person }) => {
+    
+    if(window.confirm(`Delete ${person.name}?`)) {
+      personService.remove(person.id)
+      .then(setPersons(persons
+        .filter(p => p.id !== person.id)))
     }
   }
 
@@ -49,8 +61,8 @@ const App = () => {
           return (nameExists)
   }
 
-  const filterNames = () => {
-    const filterResult = personsJSON.filter(
+  const filterPersonsNames = () => {
+    const filterResult = personsInServer.filter(
       person => person.name.toLowerCase().
         includes(filter)
     )
@@ -61,8 +73,8 @@ const App = () => {
   const filterPersons = (event) => {
     event.preventDefault()
     event.target.value = '' ?
-      setPersons(personsJSON) :
-        setPersons(filterNames())
+      setPersons(personsInServer) :
+        setPersons(filterPersonsNames())
     console.log('persons after filter:', persons)
   }
 
@@ -90,7 +102,8 @@ const App = () => {
           handleNameChange={handleNameChange}
             handleNumberChange={handleNumberChange}/>
       <h3>Numbers</h3>
-      <Persons persons={persons}/>
+      <Persons persons={persons}
+          removePerson={removePerson}/>
     </div>
   )
 }
