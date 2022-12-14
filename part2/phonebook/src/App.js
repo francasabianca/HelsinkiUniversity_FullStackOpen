@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import Persons from './components/Persons'
 import Form from './components/Form'
 import Filter from './components/Filter'
-import axios from 'axios'
+import personService from './services/Person'
 
 const App = () => {
 
@@ -18,18 +18,29 @@ const App = () => {
   const [personsJSON, setPersonsJSON] = useState([])
   const [persons, setPersons] = useState([])
   
-  const hook = () => {
-    console.log('entered in hook')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fullfilled')
-        setPersons(response.data)
-        setPersonsJSON(response.data)
-      })
+  useEffect(() => {
+    personService
+    .getAll()
+    .then(initialPersons =>
+      setPersons(initialPersons))
+    })
+    
+  const addNewPerson = (event) => {
+    event.preventDefault()
+      
+    const newPerson = {
+      name: newName,
+      number: number,
+      id: persons.length + 1
+    }
+  
+    if(!nameExists()) {
+      setPersons(persons.concat(newPerson))
+      setPersonsJSON(personsJSON.concat(newPerson))
+    } else {
+      alert(`${newName} already exists in phonebook`)
+    }
   }
-
-  useEffect(hook, [])
 
   const nameExists = () => {
     const nameExists = persons.map(
@@ -47,6 +58,14 @@ const App = () => {
     return filterResult
   }
 
+  const filterPersons = (event) => {
+    event.preventDefault()
+    event.target.value = '' ?
+      setPersons(personsJSON) :
+        setPersons(filterNames())
+    console.log('persons after filter:', persons)
+  }
+
   const handleNameChange = (event) => {
     setNewName(event.target.value)
   }
@@ -57,32 +76,6 @@ const App = () => {
 
   const handleFilterChange = (event) => {
     setFilter(event.target.value)
-  }
-
-  const filterPersons = (event) => {
-    event.preventDefault()
-    event.target.value = '' ?
-      setPersons(personsJSON) :
-        setPersons(filterNames())
-    console.log('persons after filter:', persons)
-  }
-
-  const addNewPerson = (event) => {
-    event.preventDefault()
-
-    const newPerson = {
-      name: newName,
-      number: number,
-      id: persons.length + 1
-    }
-
-    if(!nameExists()) {
-      setPersons(persons.concat(newPerson))
-      setPersonsJSON(personsJSON.concat(newPerson))
-      
-    } else {
-      alert(`${newName} already exists in phonebook`)
-    }
   }
 
   //filteredPersons = [''] ? console.log('esta vacio esto') : console.log('tiene algo esto')
