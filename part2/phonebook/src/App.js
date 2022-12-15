@@ -17,9 +17,10 @@ const App = () => {
   const [number, setNumber] = useState('')
   const [newName, setNewName] = useState('')
   const [filter, setFilter] = useState('')
-  const [personsInServer, setPersonsInServer] = useState([])
+  const [filteredPersons, setFilteredPersons] = useState('')
   const [persons, setPersons] = useState([])
   const [message, setMessage] = useState(null)
+  const [messageStyle, setMessageStyle] = useState('')
   
   useEffect(() => {
     personService
@@ -46,14 +47,29 @@ const App = () => {
           .then(response => {
             setPersons(persons.map(p => p.id !== personId ? p : response))
           })
+            .catch(() => {
+              setMessage(`${newName} has already been removed from the server!`)
+              setMessageStyle('messageError')
+              setTimeout(() => {
+                setMessage(null)
+              }, 5000)
+            })
           setMessage(`${newName} changed succesfully!`)
+          setMessageStyle('messageOk')
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
         }
       } else {
           personService.create(newPerson)
           .then(response => 
             setPersons(persons.concat(response))
-          )
-          setMessage(`${newName} added succesfully!`)
+            )
+            setMessage(`${newName} added succesfully!`)
+            setMessageStyle('messageOk')
+            setTimeout(() => {
+              setMessageStyle(null)
+            }, 5000)
       }      
   }
 
@@ -66,19 +82,19 @@ const App = () => {
   }
 
   const filterPersonsNames = () => {
-    const filterResult = personsInServer.filter(
-      person => person.name.toLowerCase().
-        includes(filter)
-    )
-    return filterResult
+      personService.getAll()
+      .then(response =>
+        setPersons(response
+          .filter(p => p.name.toLowerCase()
+            .includes(filter))
+        ))
   }
 
   const filterPersons = (event) => {
     event.preventDefault()
     event.target.value = '' ?
-      setPersons(personsInServer) :
-        setPersons(filterPersonsNames())
-    console.log('persons after filter:', persons)
+      setPersons(persons) :
+        filterPersonsNames()
   }
 
   const handleNameChange = (event) => {
@@ -98,7 +114,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={message}/>
+      <Notification message={message} messageStyle={messageStyle}/>
       <Filter handleFilterChange={handleFilterChange}
         filterPersons={filterPersons} />
       <h3>Add a new</h3>
